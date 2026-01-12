@@ -1,0 +1,42 @@
+version: '3.8'
+
+# Development docker-compose - uses host network for easier debugging
+# and mounts source code for hot-reloading
+
+services:
+  kanban-prd-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend-builder  # Use builder stage for development
+    container_name: kanban-prd-dev
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=development
+      - DATABASE_PATH=/app/data/kanban.db
+      - TARGET_REPO=/repo
+      - WORKTREES_DIR=/app/worktrees
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      # Mount source code for development
+      - ./backend:/app/backend:rw
+      - ./frontend:/app/frontend:rw
+      # Mount your project repository
+      - ${TARGET_REPO:-.}:/repo:rw
+      # Persist database
+      - kanban-data:/app/data
+      # Worktrees directory
+      - kanban-worktrees:/app/worktrees
+      # Mount Claude config
+      - ~/.claude:/root/.claude:ro
+    working_dir: /app/backend
+    command: bun --hot run src/index.ts
+    restart: unless-stopped
+
+volumes:
+  kanban-data:
+    name: kanban-prd-data-dev
+  kanban-worktrees:
+    name: kanban-prd-worktrees-dev

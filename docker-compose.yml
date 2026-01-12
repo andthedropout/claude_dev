@@ -1,0 +1,39 @@
+services:
+  kanban-prd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kanban-prd-manager
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      - DATABASE_PATH=/app/data/kanban.db
+      - TARGET_REPO=/repo
+      - WORKTREES_DIR=/app/worktrees
+      - CLAUDE_PATH=claude
+      - MAX_ITERATIONS=50
+      - TIMEOUT_MS=1800000
+    volumes:
+      # Mount your project repository
+      - ${TARGET_REPO:-.}:/repo:rw
+      # Persist database
+      - kanban-data:/app/data
+      # Worktrees directory (needs write access)
+      - kanban-worktrees:/app/worktrees
+      # Mount Claude CLI config (for API key if using claude CLI)
+      - ~/.claude:/home/appuser/.claude:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  kanban-data:
+    name: kanban-prd-data
+  kanban-worktrees:
+    name: kanban-prd-worktrees

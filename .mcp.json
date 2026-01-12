@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "shadcn": {
+      "command": "npx",
+      "args": ["-y", "@anthropic-ai/claude-code-mcp-shadcn@latest"]
+    }
+  }
+}
