@@ -101,13 +101,24 @@ else:
     winsize = struct.pack('HHHH', 40, 120, 0, 0)
     fcntl.ioctl(fd, termios.TIOCSWINSZ, winsize)
 
-    # Handle SIGCHLD to detect child exit
+    global child_exited
+    child_exited = False
+
     def sigchld_handler(signum, frame):
-        pass
+        global child_exited
+        child_exited = True
     signal.signal(signal.SIGCHLD, sigchld_handler)
 
     try:
         while True:
+            # Check if child has exited
+            try:
+                wpid, status = os.waitpid(pid, os.WNOHANG)
+                if wpid != 0:
+                    child_exited = True
+            except ChildProcessError:
+                child_exited = True
+
             r, w, e = select.select([fd, sys.stdin], [], [], 0.1)
             if fd in r:
                 try:
@@ -115,10 +126,14 @@ else:
                     if data:
                         sys.stdout.buffer.write(data)
                         sys.stdout.flush()
-                    else:
+                    elif child_exited:
+                        # Only break if child has actually exited AND no data
                         break
                 except OSError:
                     break
+            elif child_exited:
+                # Child exited and no data ready to read
+                break
             if sys.stdin in r:
                 try:
                     data = sys.stdin.buffer.read1(4096)

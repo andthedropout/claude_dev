@@ -25,6 +25,11 @@ RUN bun run build
 # =============================================================================
 FROM oven/bun:1 AS backend-builder
 
+# Install python3 for PTY handling (needed for dev mode)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app/backend
 
 # Copy backend package files
@@ -41,11 +46,12 @@ COPY backend/ ./
 # =============================================================================
 FROM oven/bun:1-slim AS runtime
 
-# Install git for worktree management and curl for health checks
+# Install git for worktree management, curl for health checks, python3 for PTY
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
     ca-certificates \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
