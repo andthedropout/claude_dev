@@ -22,8 +22,8 @@ services:
       - kanban-data:/app/data
       # Worktrees directory (needs write access)
       - kanban-worktrees:/app/worktrees
-      # Mount Claude CLI config (for API key if using claude CLI)
-      - ~/.claude:/home/appuser/.claude:ro
+      # Mount Claude CLI config with write access (needed for sessions)
+      - claude-config:/home/appuser/.claude:rw
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
       interval: 30s
@@ -37,3 +37,5 @@ volumes:
     name: kanban-prd-data
   kanban-worktrees:
     name: kanban-prd-worktrees
+  claude-config:
+    name: kanban-claude-config

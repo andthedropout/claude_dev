@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Circle, Loader2, Eye, CheckCircle2, XCircle, MoreHorizontal, BarChart3 } from 'lucide-react';
+import { Circle, Loader2, Eye, CheckCircle2, XCircle, Trash2, BarChart3 } from 'lucide-react';
+import { useKanbanStore } from '@/stores/kanban-store';
 import type { Ticket } from '@/lib/api';
 
 interface TicketCardProps {
@@ -44,6 +45,7 @@ function StatusIcon({ columnId }: { columnId: string }) {
 }
 
 export function TicketCard({ ticket, columnId, onClick }: TicketCardProps) {
+  const deleteTicket = useKanbanStore((state) => state.deleteTicket);
   const {
     attributes,
     listeners,
@@ -92,13 +94,20 @@ export function TicketCard({ ticket, columnId, onClick }: TicketCardProps) {
       </div>
 
       {/* Bottom row: indicators */}
-      <div className="flex items-center gap-2 mt-2">
-        <button className="w-5 h-5 flex items-center justify-center rounded hover:bg-accent/50 text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-all">
-          <MoreHorizontal className="w-3.5 h-3.5" />
-        </button>
-
-        {/* Show bar chart icon like Linear does */}
+      <div className="flex items-center justify-between mt-2">
         <BarChart3 className="w-3.5 h-3.5 text-muted-foreground/40" />
+
+        <button
+          className="w-5 h-5 flex items-center justify-center rounded hover:bg-destructive/20 text-muted-foreground/50 hover:text-destructive opacity-0 group-hover:opacity-100 transition-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirm('Delete this ticket?')) {
+              deleteTicket(ticket.id);
+            }
+          }}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );

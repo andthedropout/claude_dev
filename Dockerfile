@@ -52,10 +52,27 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     python3 \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user for security
 RUN useradd -m -s /bin/bash appuser
+
+# Install Claude Code for the appuser
+USER appuser
+WORKDIR /home/appuser
+
+# Download and install Claude Code native binary
+RUN curl -fsSL https://storage.googleapis.com/anthropic-cli/install.sh | bash
+
+# Add Claude to PATH
+ENV PATH="/home/appuser/.local/bin:$PATH"
+
+# Create .claude directory with proper permissions
+RUN mkdir -p /home/appuser/.claude && \
+    chmod 755 /home/appuser/.claude
+
+USER root
 
 WORKDIR /app
 
